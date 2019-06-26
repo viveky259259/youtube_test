@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "415559321663",
+    "firebase_url": "https://api-test-7.firebaseio.com",
+    "project_id": "youtube-api-test-7",
+    "storage_bucket": "youtube-api-test-7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:415559321663:android:743d0cfce415345d",
+        "android_client_info": {
+          "package_name": "com.mydunia.registrationlogin1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "415559321663-4fb0hisru58i6qp9nqok68i60d3trqq4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mydunia.registrationlogin1",
+            "certificate_hash": "62992014c82d29d9842aba8c78601fbf2f1c0078"
+          }
+        },
+        {
+          "client_id": "415559321663-q4g6bfe5fb896863pl80hn27186b6ikb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwav8CRwLCo4w6KtAkBNTaAkvx7jIgbQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "415559321663-q4g6bfe5fb896863pl80hn27186b6ikb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
