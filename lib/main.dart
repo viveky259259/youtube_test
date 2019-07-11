@@ -9,7 +9,6 @@ var routes = <String, WidgetBuilder>{
   "/RegistrationScreen": (BuildContext context) => RegistrationScreen(),
   "/LoginScreen": (BuildContext context) => LoginScreen(),
   "/HomeScreen": (BuildContext context) => HomeScreen(),
-
 };
 
 void main() => runApp(new MaterialApp(

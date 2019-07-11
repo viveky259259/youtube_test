@@ -9,6 +9,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:registration_login/utils/util.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:http/http.dart' as http;
+import "package:googleapis_auth/auth_io.dart";
+import 'package:googleapis/youtube/v3.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -22,20 +24,37 @@ class _LoginData {
 
 class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _fireBaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = new GoogleSignIn();
   static final FacebookLogin facebookSignIn = new FacebookLogin();
   String _message = 'Log in/out by pressing the buttons below.';
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   _LoginData _data = new _LoginData();
+  final _googleSignIn = new GoogleSignIn(
+    scopes: ['email', YoutubeApi.YoutubeReadonlyScope],
+  );
 
   Future<FirebaseUser> _googleSignInButton() async {
     GoogleSignInAccount _googleSignInAccount = await _googleSignIn.signIn();
     GoogleSignInAuthentication _googleSignInAuth =
         await _googleSignInAccount.authentication;
+    var key = await http.get(
+        "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${_googleSignInAuth.accessToken}");
+    var body = json.decode(key.body);
+    var authTO = body["aud"];
 
+    var client = new http.Client();
+    var id = ClientId.serviceAccount(
+        "415559321663-t0gn2nurftcbusc9hg2rmogppuapqn3k.apps.googleusercontent.com");
+    AuthClient clientAuth =
+        await clientViaUserConsent(id, _googleSignIn.scopes, prompt);
+//    .then((AuthClient client) {
+//      // Authenticated and auto refreshing client is available in [client].
+//      // ...
+//      client.close();
+//    });
     FirebaseUser _fireBaseUser = await _fireBaseAuth.signInWithGoogle(
         idToken: _googleSignInAuth.idToken,
         accessToken: _googleSignInAuth.accessToken);
+
     // print("user name : ${_fireBaseUser.photoUrl}");
     Util.userName = _fireBaseUser.displayName;
     Util.emailId = _fireBaseUser.email;
@@ -43,6 +62,12 @@ class _LoginScreenState extends State<LoginScreen> {
     Util.authToken = await _fireBaseUser.getIdToken();
     NavigationRouter.switchToHome(context);
     return _fireBaseUser;
+  }
+
+  void prompt(String url) {
+    print("Please go to the following URL and grant access:");
+    print("  => $url");
+    print("");
   }
 
   Future<Null> _facebookLogin() async {
@@ -257,12 +282,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 icon: new Image.asset("assets/google_plus.png",
                                     width: 24.0, height: 24.0),
-                                onPressed: () => _googleSignInButton()
-                                    .then(
-                                      (FirebaseUser user) =>
-                                          print(user),
-                                    )
-                                    .catchError((e) => print(e)),
+                                onPressed: () => _googleSignInButton().then(
+                                      (FirebaseUser user) {
+                                        print(user);
+                                        http.get(
+                                            "https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.subscriptions.list?part=snippet,contentDetails&mine=true");
+                                      },
+                                    ).catchError((e) => print(e)),
                                 color: Colors.red,
                               ),
                             ),
