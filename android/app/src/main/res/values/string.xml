@@ -4,4 +4,5 @@
     //put here facebook app id and scheme
     <string name="facebook_app_id">****************</string>
     <string name="fb_login_protocol_scheme">fb****************</string>
+<!--    <string name="default_web_client_id">415559321663-jtf2e2e594ajcnstcrgsg5rnltlakeaj.apps.googleusercontent.com</string>-->
 </resources>

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:registration_login/utils/list_item.dart';
 import 'package:registration_login/utils/navigation_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,28 +30,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   _LoginData _data = new _LoginData();
   final _googleSignIn = new GoogleSignIn(
-    scopes: ['email', YoutubeApi.YoutubeReadonlyScope],
+    scopes: ['email', YoutubeApi.YoutubeScope],
   );
 
   Future<FirebaseUser> _googleSignInButton() async {
     GoogleSignInAccount _googleSignInAccount = await _googleSignIn.signIn();
     GoogleSignInAuthentication _googleSignInAuth =
-        await _googleSignInAccount.authentication;
+    await _googleSignInAccount.authentication;
     var key = await http.get(
-        "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${_googleSignInAuth.accessToken}");
+        "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${_googleSignInAuth
+            .accessToken}");
     var body = json.decode(key.body);
-    var authTO = body["aud"];
 
-    var client = new http.Client();
-    var id = ClientId.serviceAccount(
-        "415559321663-t0gn2nurftcbusc9hg2rmogppuapqn3k.apps.googleusercontent.com");
-    AuthClient clientAuth =
-        await clientViaUserConsent(id, _googleSignIn.scopes, prompt);
-//    .then((AuthClient client) {
-//      // Authenticated and auto refreshing client is available in [client].
-//      // ...
-//      client.close();
-//    });
+    // commented on 14th sept
+//    var authTO = body["aud"];
+//
+//    var client = new http.Client();
+//    var id = ClientId.serviceAccount(
+//        "415559321663-t0gn2nurftcbusc9hg2rmogppuapqn3k.apps.googleusercontent.com");
+//    try {
+//      AuthClient clientAuth =
+//          await clientViaUserConsent(id, _googleSignIn.scopes, prompt);
+//      print(clientAuth);
+//    } catch (e) {
+//      print(e);
+//    }
+
     FirebaseUser _fireBaseUser = await _fireBaseAuth.signInWithGoogle(
         idToken: _googleSignInAuth.idToken,
         accessToken: _googleSignInAuth.accessToken);
@@ -68,69 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
     print("Please go to the following URL and grant access:");
     print("  => $url");
     print("");
-  }
-
-  Future<Null> _facebookLogin() async {
-    final FacebookLoginResult result = await facebookSignIn
-        .logInWithReadPermissions(['email', 'public_profile', 'user_posts']);
-    //,publish_actions,manage_pages,publish_pages,user_status,user_videos,user_work_history
-
-    switch (result.status) {
-      case FacebookLoginStatus.loggedIn:
-        final FacebookAccessToken accessToken = result.accessToken;
-        accessToken.permissions;
-
-        var graphResponse = await http.get(
-            'https://graph.facebook.com/v2.12/me?fields=name,first_name,picture,last_name,email&access_token=${accessToken.token}');
-        Map<String, dynamic> user = json.decode(graphResponse.body);
-        Map<String, dynamic> picture = user['picture'];
-        Map<String, dynamic> data = picture['data'];
-        Util.userName = user['name'];
-        Util.emailId = user['email'];
-        Util.profilePic = data['url'];
-        var graphResponseFeed = await http.get(
-            'https://graph.facebook.com/v2.12/me/feed?fields=message&access_token=${accessToken.token}');
-        var data1 = json.decode(graphResponseFeed.body);
-        // print(data1);
-
-        // me?fields=id,name,feed{message,attachments}
-        var graphResponseFeed1 = await http.get(
-            'https://graph.facebook.com/v2.12/me?fields=id,name,feed{attachments,message}&access_token=${accessToken.token}');
-        var data1l = json.decode(graphResponseFeed1.body);
-        Map<String, dynamic> root = json.decode(graphResponseFeed1.body);
-        Map<String, dynamic> feed = root['feed'];
-        var fdata = feed['data'];
-
-        for (var i = 0; i < fdata.length; i++) {
-          var qq = fdata[i];
-          // var pp = qq['attachments'];
-          if (qq['attachments'] == null) {
-            i++;
-          } else {
-            Map<String, dynamic> pp = qq['attachments'];
-            var nn = pp['data'];
-            for (var j = 0; j < nn.length; j++) {
-              var mm = nn[j];
-              var jj = mm['media'];
-              var img = jj['image'];
-              var src = img['src'];
-              print(src);
-              Util.descriptionList.add(mm['description']);
-              Util.mediaList.add(img['src']);
-              // Util.listItems.add(new ListItem(mm['description'], img['src']));
-            }
-          }
-          NavigationRouter.switchToHome(context);
-        }
-        break;
-      case FacebookLoginStatus.cancelledByUser:
-        _showMessage('Login cancelled by the user.');
-        break;
-      case FacebookLoginStatus.error:
-        _showMessage('Something went wrong with the login process.\n'
-            'Here\'s the error Facebook gave us: ${result.errorMessage}');
-        break;
-    }
   }
 
   Future<Null> _logOut() async {
@@ -282,48 +224,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 icon: new Image.asset("assets/google_plus.png",
                                     width: 24.0, height: 24.0),
-                                onPressed: () => _googleSignInButton().then(
-                                      (FirebaseUser user) {
+                                onPressed: () =>
+                                    _googleSignInButton().then(
+                                          (FirebaseUser user) async {
                                         print(user);
-                                        http.get(
+                                        Response a = await http.get(
                                             "https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.subscriptions.list?part=snippet,contentDetails&mine=true");
+                                        var b = json.decode(a.body);
+                                        print(b);
                                       },
-                                    ).catchError((e) => print(e)),
+                                    ).catchError((e) =>
+                                        print(e)),
                                 color: Colors.red,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      new Container(
-                        margin: const EdgeInsets.only(left: 10.0, top: 20.0),
-                        child: new Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            new Container(
-                              height: 50.0,
-                              width: 210.0,
-                              child: new RaisedButton.icon(
-                                label: new Text(
-                                  'Login with Facebook',
-                                  style: new TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                icon: new Image.asset(
-                                  "assets/facebook.png",
-                                  width: 24.0,
-                                  height: 24.0,
-                                ),
-                                // icon: const Icon(Icons.adjust, size: 28.0,color: Colors.white),
-
-                                onPressed: this._facebookLogin,
-                                color: Colors.indigo,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
                     ],
                   ),
                 )
